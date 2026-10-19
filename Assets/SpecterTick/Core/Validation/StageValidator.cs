@@ -80,14 +80,14 @@ namespace SpecterTick.Core.Validation
             if (definition.Width <= 0)
             {
                 AddError(errors, seen, StageValidationErrorCode.WidthInvalid,
-                    new StageValidationSubject(StageElementKind.Player),
+                    new StageValidationSubject(StageElementKind.Stage),
                     "Stage width must be greater than zero.");
             }
 
             if (definition.Height <= 0)
             {
                 AddError(errors, seen, StageValidationErrorCode.HeightInvalid,
-                    new StageValidationSubject(StageElementKind.Player),
+                    new StageValidationSubject(StageElementKind.Stage),
                     "Stage height must be greater than zero.");
             }
         }

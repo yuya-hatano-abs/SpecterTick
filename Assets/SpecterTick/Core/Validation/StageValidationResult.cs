@@ -6,6 +6,9 @@ namespace SpecterTick.Core.Validation
 {
     public sealed class StageValidationResult
     {
+        private static readonly IReadOnlyList<StageValidationError> EmptyErrors =
+            Array.AsReadOnly(Array.Empty<StageValidationError>());
+
         private readonly IStage _stage;
         private readonly IReadOnlyList<StageValidationError> _errors;
 
@@ -38,17 +41,17 @@ namespace SpecterTick.Core.Validation
             }
         }
 
-        public static StageValidationResult Success(IStage stage)
+        internal static StageValidationResult Success(IStage stage)
         {
             if (stage == null)
             {
                 throw new ArgumentNullException(nameof(stage));
             }
 
-            return new StageValidationResult(stage, Array.Empty<StageValidationError>());
+            return new StageValidationResult(stage, EmptyErrors);
         }
 
-        public static StageValidationResult Failure(IReadOnlyList<StageValidationError> errors)
+        internal static StageValidationResult Failure(IReadOnlyList<StageValidationError> errors)
         {
             if (errors == null)
             {
@@ -57,10 +60,23 @@ namespace SpecterTick.Core.Validation
 
             if (errors.Count == 0)
             {
-                throw new ArgumentException("At least one error is required for a failed validation result.", nameof(errors));
+                throw new ArgumentException(
+                    "At least one error is required for a failed validation result.",
+                    nameof(errors));
             }
 
-            return new StageValidationResult(null, errors);
+            var copy = new StageValidationError[errors.Count];
+            for (var i = 0; i < errors.Count; i++)
+            {
+                if (errors[i] == null)
+                {
+                    throw new ArgumentException("Error list cannot contain null elements.", nameof(errors));
+                }
+
+                copy[i] = errors[i];
+            }
+
+            return new StageValidationResult(null, Array.AsReadOnly(copy));
         }
     }
 }

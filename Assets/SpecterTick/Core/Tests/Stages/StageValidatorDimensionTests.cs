@@ -8,6 +8,20 @@ namespace SpecterTick.Core.Tests.Stages
     [TestFixture]
     public sealed class StageValidatorDimensionTests
     {
+        [Test]
+        public void InvalidWidth_AndHeight_UseStageSubjectKind()
+        {
+            var definition = StageDefinitionTestBuilder.CreateMinimalValid();
+            definition.Width = 0;
+            definition.Height = -1;
+            var errors = StageValidator.Validate(definition).Errors;
+
+            var width = errors.First(e => e.Code == StageValidationErrorCode.WidthInvalid);
+            var height = errors.First(e => e.Code == StageValidationErrorCode.HeightInvalid);
+            Assert.That(width.Subject.Kind, Is.EqualTo(StageElementKind.Stage));
+            Assert.That(height.Subject.Kind, Is.EqualTo(StageElementKind.Stage));
+        }
+
         [TestCase(-1)]
         [TestCase(0)]
         public void InvalidWidth_Fails(int width)

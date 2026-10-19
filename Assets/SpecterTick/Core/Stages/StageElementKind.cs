@@ -10,6 +10,7 @@ namespace SpecterTick.Core.Stages
         Exit = 2,
         Wall = 3,
         Switch = 4,
-        Door = 5
+        Door = 5,
+        Stage = 6
     }
 }
