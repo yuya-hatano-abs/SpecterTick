@@ -105,7 +105,7 @@
 ### 5. クラス責務とAPI設計
 
 - **GridPosition**：整数座標X, Yを持つ不変構造体（`readonly struct`）。
-- **RecordedCommand**：`Tick`と`Direction`を保持する不変構造体。
+- **RecordedCommand**：`Tick`と`Direction`を保持する不変構造体。※注記：Task 01の段階では方向（Direction）のみを保持し、Tick番号や再生管理等は後続のタスクで順次統合・拡張する。
 - **StageDefinition**：盤面幅・高さ、開始位置、壁・スイッチ・ドア・出口の位置を保持するデータ。
 - **GameState**：ゲームの現在状態を保持する不変スナップショット。
 - **GameEngine**：1 Tickずつ進行を管理する中心的なロジッククラス。
