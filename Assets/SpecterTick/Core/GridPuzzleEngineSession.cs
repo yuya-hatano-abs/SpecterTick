@@ -15,9 +15,10 @@ namespace SpecterTick.Core
                 throw new ArgumentNullException(nameof(stage));
             }
 
+            // Assumes a stage that passed StageValidator (e.g. no player/specter on switch cells).
+            // Switch latch at Tick 0 is not evaluated; initial activation is empty.
             Stage = stage;
             _layout = StageLayoutSnapshot.FromStage(stage);
-            // GameState.CreateInitial is only called after the null check above; it does not accept IStage.
             _state = GameState.CreateInitial(
                 _layout.InitialPlayerPosition,
                 _layout.InitialSpecterPosition);
@@ -26,6 +27,15 @@ namespace SpecterTick.Core
         public IStage Stage { get; }
 
         public GameState State => _state;
+
+        public bool AllSwitchesActivated => _layout.AllSwitchesActivated(_state.ActivatedSwitches);
+
+        public bool IsExitOpen => _layout.IsExitOpen(_state.ActivatedSwitches);
+
+        public bool IsDoorOpen(DoorId doorId)
+        {
+            return _layout.IsDoorOpen(_state.ActivatedSwitches, doorId);
+        }
 
         public void Step(MoveDirection direction)
         {
@@ -38,13 +48,21 @@ namespace SpecterTick.Core
             var candidate = _state.PlayerPosition + offset;
             var nextPlayer = _state.PlayerPosition;
 
-            if (_layout.IsInside(candidate) && !_layout.BlocksMovement(candidate))
+            if (_layout.IsInside(candidate)
+                && !_layout.BlocksMovement(candidate, _state.ActivatedSwitches))
             {
                 nextPlayer = candidate;
             }
 
+            var nextActivated = _layout.ApplyLatch(
+                _state.ActivatedSwitches,
+                new[] { nextPlayer });
             var nextTick = checked(_state.Tick + 1);
-            _state = new GameState(nextTick, nextPlayer, _state.SpecterPosition);
+            _state = new GameState(
+                nextTick,
+                nextPlayer,
+                _state.SpecterPosition,
+                nextActivated);
         }
     }
 }
