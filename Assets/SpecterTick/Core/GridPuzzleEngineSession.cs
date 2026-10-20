@@ -150,6 +150,17 @@ namespace SpecterTick.Core
             return from;
         }
 
+        public void Retry()
+        {
+            var initialState = GameState.CreateInitial(
+                _layout.InitialPlayerPosition,
+                _layout.InitialSpecterPosition);
+            var emptyCommands = RecordedCommandSequence.Empty;
+            // Reset session state atomically: keep the two assignments adjacent with no fallible work between them.
+            _state = initialState;
+            _recordedCommands = emptyCommands;
+        }
+
         private GameState ApplyClearIfNeeded(GameState state)
         {
             if (state.PlayerPosition.Equals(_layout.ExitPosition)
