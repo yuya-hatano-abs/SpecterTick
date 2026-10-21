@@ -3,6 +3,7 @@
     "rootNamespace": "SpecterTick.Presentation.Tests",
     "references": [
         "SpecterTick.Core",
+        "SpecterTick.Presentation",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
