@@ -2,7 +2,8 @@
     "name": "SpecterTick.Presentation",
     "rootNamespace": "SpecterTick.Presentation",
     "references": [
-        "SpecterTick.Core"
+        "SpecterTick.Core",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

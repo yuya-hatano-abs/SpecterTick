@@ -120,6 +120,19 @@ namespace SpecterTick.Presentation
             camera.orthographicSize = size;
         }
 
+        public void FitCamera()
+        {
+            var camera = targetCamera != null ? targetCamera : Camera.main;
+            if (camera != null)
+            {
+                FitCamera(camera);
+            }
+            else
+            {
+                Debug.LogWarning("BoardView.Start: no camera assigned and Camera.main is null.");
+            }
+        }
+
         public void ReleaseResources()
         {
             ClearBoardHierarchy();
@@ -130,25 +143,6 @@ namespace SpecterTick.Presentation
             _mapper = null;
             _stageWidth = 0;
             _stageHeight = 0;
-        }
-
-        private void Start()
-        {
-            // Temporary driver until Task 15 (stage loading / game flow). Does not call session.Step.
-            var stage = SampleStageFactory.Create();
-            var session = new GridPuzzleEngineSession(stage);
-            Show(stage);
-            UpdateActors(session.State);
-
-            var camera = targetCamera != null ? targetCamera : Camera.main;
-            if (camera != null)
-            {
-                FitCamera(camera);
-            }
-            else
-            {
-                Debug.LogWarning("BoardView.Start: no camera assigned and Camera.main is null.");
-            }
         }
 
         private void OnDestroy()
