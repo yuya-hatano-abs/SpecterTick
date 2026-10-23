@@ -5,7 +5,8 @@
         "SpecterTick.Core",
         "SpecterTick.Presentation",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

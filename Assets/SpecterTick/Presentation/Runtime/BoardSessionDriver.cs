@@ -8,6 +8,7 @@ namespace SpecterTick.Presentation
     public sealed class BoardSessionDriver : MonoBehaviour
     {
         private BoardView _boardView;
+        private HudView _hudView;
         private GridPuzzleEngineSession _session;
         private SessionInputDispatcher _dispatcher;
         private GameMode _lastLoggedMode;
@@ -26,6 +27,14 @@ namespace SpecterTick.Presentation
                 _dispatcher = new SessionInputDispatcher(_session);
                 _boardView.Show(stage);
                 _boardView.UpdateActors(_session.State);
+                if (!TryGetComponent(out HudView hudView))
+                {
+                    hudView = gameObject.AddComponent<HudView>();
+                }
+
+                // Temporary HUD wiring until Task 15 (stage loading / game flow).
+                _hudView = hudView;
+                RefreshHud();
                 _boardView.FitCamera();
                 _lastLoggedMode = _session.State.Mode;
                 _updateEnabled = true;
@@ -84,6 +93,7 @@ namespace SpecterTick.Presentation
             if (result == InputResult.Executed)
             {
                 _boardView.UpdateActors(_session.State);
+                RefreshHud();
                 var stateAfter = _session.State;
                 if (stateAfter.Mode != _lastLoggedMode)
                 {
@@ -157,6 +167,16 @@ namespace SpecterTick.Presentation
             }
 
             return keys;
+        }
+
+        private void RefreshHud()
+        {
+            if (_hudView == null || _session == null)
+            {
+                return;
+            }
+
+            _hudView.Apply(HudModelBuilder.Build(_session));
         }
     }
 }
