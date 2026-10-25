@@ -104,7 +104,7 @@ namespace SpecterTick.Presentation.Tests
             Assert.That(floor.childCount, Is.EqualTo(20));
             Assert.That(walls.childCount, Is.EqualTo(4));
             Assert.That(actors.childCount, Is.EqualTo(2));
-            Assert.That(_boardView.transform.childCount, Is.EqualTo(3));
+            Assert.That(_boardView.transform.childCount, Is.EqualTo(4));
 
             Assert.Throws<ArgumentNullException>(() => _boardView.Show(null));
         }

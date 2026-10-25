@@ -7,6 +7,9 @@ namespace SpecterTick.Presentation
     [RequireComponent(typeof(BoardView))]
     public sealed class BoardSessionDriver : MonoBehaviour
     {
+        [SerializeField]
+        private bool useSampleStageSg;
+
         private BoardView _boardView;
         private HudView _hudView;
         private GridPuzzleEngineSession _session;
@@ -22,11 +25,13 @@ namespace SpecterTick.Presentation
             try
             {
                 _boardView = GetComponent<BoardView>();
-                var stage = SampleStageFactory.Create();
+                // Temporary demo/SG stage selection until Task 15 (stage loading / game flow).
+                var stage = useSampleStageSg ? SampleStageFactory.Create() : SampleStageFactory.CreateDemo();
                 _session = new GridPuzzleEngineSession(stage);
                 _dispatcher = new SessionInputDispatcher(_session);
                 _boardView.Show(stage);
                 _boardView.UpdateActors(_session.State);
+                _boardView.UpdateElements(BoardElementsModelBuilder.Build(_session));
                 if (!TryGetComponent(out HudView hudView))
                 {
                     hudView = gameObject.AddComponent<HudView>();
@@ -93,6 +98,7 @@ namespace SpecterTick.Presentation
             if (result == InputResult.Executed)
             {
                 _boardView.UpdateActors(_session.State);
+                _boardView.UpdateElements(BoardElementsModelBuilder.Build(_session));
                 RefreshHud();
                 var stateAfter = _session.State;
                 if (stateAfter.Mode != _lastLoggedMode)
