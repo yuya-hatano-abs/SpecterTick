@@ -8,7 +8,7 @@ namespace SpecterTick.Presentation
     {
         private const float ReferenceFontSize = 20f;
         private const float PanelWidth = 600f;
-        private const float PanelHeight = 160f;
+        private const float PanelHeight = 190f;
         private const float PanelPadding = 12f;
         private const float PanelOffsetX = 16f;
         private const float PanelOffsetY = -16f;

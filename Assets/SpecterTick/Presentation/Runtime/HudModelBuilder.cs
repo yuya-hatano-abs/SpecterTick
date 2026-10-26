@@ -13,6 +13,11 @@ namespace SpecterTick.Presentation
         private const string KeysPlayback = "STEP: SPACE  RESET: R";
         private const string KeysCleared = "RESET: R";
 
+        private const string SwitchesPrefix = "SWITCHES: ";
+        private const string ExitSeparator = "  EXIT: ";
+        private const string ExitOpen = "OPEN";
+        private const string ExitClosed = "CLOSED";
+
         public static HudModel Build(GridPuzzleEngineSession session)
         {
             if (session == null)
@@ -27,7 +32,26 @@ namespace SpecterTick.Presentation
                 directions.Add(command.Direction);
             }
 
-            return Build(state.Mode, state.Tick, state.PlaybackIndex, directions);
+            var activatedSwitches = 0;
+            var switches = session.Stage.Switches;
+            for (var i = 0; i < switches.Count; i++)
+            {
+                var sw = switches[i];
+                if (state.IsSwitchActivated(sw.Id))
+                {
+                    activatedSwitches++;
+                }
+            }
+
+            var totalSwitches = switches.Count;
+            return Build(
+                state.Mode,
+                state.Tick,
+                state.PlaybackIndex,
+                directions,
+                activatedSwitches,
+                totalSwitches,
+                session.IsExitOpen);
         }
 
         public static HudModel Build(
@@ -51,9 +75,68 @@ namespace SpecterTick.Presentation
                 throw new ArgumentOutOfRangeException(nameof(playbackIndex), playbackIndex, "Playback index cannot be negative.");
             }
 
-            string modeLine;
-            string progressLine;
-            string keysLine;
+            BuildStandardLines(mode, playbackIndex, recordedDirections, out var modeLine, out var progressLine, out var keysLine);
+            var tickLine = "TICK: " + tick;
+            var commandsLine = BuildCommandsLine(recordedDirections);
+
+            return new HudModel(modeLine, tickLine, progressLine, keysLine, commandsLine);
+        }
+
+        public static HudModel Build(
+            GameMode mode,
+            int tick,
+            int playbackIndex,
+            IReadOnlyList<MoveDirection> recordedDirections,
+            int activatedSwitches,
+            int totalSwitches,
+            bool isExitOpen)
+        {
+            if (recordedDirections == null)
+            {
+                throw new ArgumentNullException(nameof(recordedDirections));
+            }
+
+            if (tick < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(tick), tick, "Tick cannot be negative.");
+            }
+
+            if (playbackIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(playbackIndex), playbackIndex, "Playback index cannot be negative.");
+            }
+
+            if (activatedSwitches < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activatedSwitches), activatedSwitches, "Activated switch count cannot be negative.");
+            }
+
+            if (totalSwitches < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalSwitches), totalSwitches, "Total switch count cannot be negative.");
+            }
+
+            if (activatedSwitches > totalSwitches)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activatedSwitches), activatedSwitches, "Activated switch count cannot exceed total switch count.");
+            }
+
+            BuildStandardLines(mode, playbackIndex, recordedDirections, out var modeLine, out var progressLine, out var keysLine);
+            var tickLine = "TICK: " + tick;
+            var commandsLine = BuildCommandsLine(recordedDirections);
+            var goalLine = BuildGoalLine(activatedSwitches, totalSwitches, isExitOpen);
+
+            return new HudModel(modeLine, tickLine, progressLine, keysLine, commandsLine, goalLine);
+        }
+
+        private static void BuildStandardLines(
+            GameMode mode,
+            int playbackIndex,
+            IReadOnlyList<MoveDirection> recordedDirections,
+            out string modeLine,
+            out string progressLine,
+            out string keysLine)
+        {
             switch (mode)
             {
                 case GameMode.Recording:
@@ -77,11 +160,16 @@ namespace SpecterTick.Presentation
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, "The game mode is not defined.");
             }
+        }
 
-            var tickLine = "TICK: " + tick;
-            var commandsLine = BuildCommandsLine(recordedDirections);
-
-            return new HudModel(modeLine, tickLine, progressLine, keysLine, commandsLine);
+        private static string BuildGoalLine(int activatedSwitches, int totalSwitches, bool isExitOpen)
+        {
+            return SwitchesPrefix
+                + activatedSwitches
+                + " / "
+                + totalSwitches
+                + ExitSeparator
+                + (isExitOpen ? ExitOpen : ExitClosed);
         }
 
         private static string BuildCommandsLine(IReadOnlyList<MoveDirection> recordedDirections)
