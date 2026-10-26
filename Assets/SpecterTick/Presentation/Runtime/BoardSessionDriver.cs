@@ -12,6 +12,7 @@ namespace SpecterTick.Presentation
 
         private BoardView _boardView;
         private HudView _hudView;
+        private ClearScreenView _clearScreenView;
         private GridPuzzleEngineSession _session;
         private SessionInputDispatcher _dispatcher;
         private GameMode _lastLoggedMode;
@@ -40,6 +41,13 @@ namespace SpecterTick.Presentation
                 // Temporary HUD wiring until Task 15 (stage loading / game flow).
                 _hudView = hudView;
                 RefreshHud();
+                if (!TryGetComponent(out ClearScreenView clearScreenView))
+                {
+                    clearScreenView = gameObject.AddComponent<ClearScreenView>();
+                }
+
+                _clearScreenView = clearScreenView;
+                RefreshClearScreen();
                 _boardView.FitCamera();
                 _lastLoggedMode = _session.State.Mode;
                 _updateEnabled = true;
@@ -100,6 +108,7 @@ namespace SpecterTick.Presentation
                 _boardView.UpdateActors(_session.State);
                 _boardView.UpdateElements(BoardElementsModelBuilder.Build(_session));
                 RefreshHud();
+                RefreshClearScreen();
                 var stateAfter = _session.State;
                 if (stateAfter.Mode != _lastLoggedMode)
                 {
@@ -183,6 +192,16 @@ namespace SpecterTick.Presentation
             }
 
             _hudView.Apply(HudModelBuilder.Build(_session));
+        }
+
+        private void RefreshClearScreen()
+        {
+            if (_clearScreenView == null || _session == null)
+            {
+                return;
+            }
+
+            _clearScreenView.Apply(ClearScreenModelBuilder.Build(_session));
         }
     }
 }
