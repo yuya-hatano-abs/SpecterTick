@@ -7,12 +7,11 @@ namespace SpecterTick.Presentation
     [RequireComponent(typeof(BoardView))]
     public sealed class BoardSessionDriver : MonoBehaviour
     {
-        [SerializeField]
-        private bool useSampleStageSg;
-
         private BoardView _boardView;
         private HudView _hudView;
         private ClearScreenView _clearScreenView;
+        private StageLabelView _stageLabelView;
+        private StageFlow _flow;
         private GridPuzzleEngineSession _session;
         private SessionInputDispatcher _dispatcher;
         private GameMode _lastLoggedMode;
@@ -26,13 +25,7 @@ namespace SpecterTick.Presentation
             try
             {
                 _boardView = GetComponent<BoardView>();
-                // Temporary demo/SG stage selection until Task 15 (stage loading / game flow).
-                var stage = useSampleStageSg ? SampleStageFactory.Create() : SampleStageFactory.CreateDemo();
-                _session = new GridPuzzleEngineSession(stage);
-                _dispatcher = new SessionInputDispatcher(_session);
-                _boardView.Show(stage);
-                _boardView.UpdateActors(_session.State);
-                _boardView.UpdateElements(BoardElementsModelBuilder.Build(_session));
+                _flow = new StageFlow(StageCatalog.Count);
                 if (!TryGetComponent(out HudView hudView))
                 {
                     hudView = gameObject.AddComponent<HudView>();
@@ -40,16 +33,19 @@ namespace SpecterTick.Presentation
 
                 // Temporary HUD wiring until Task 15 (stage loading / game flow).
                 _hudView = hudView;
-                RefreshHud();
                 if (!TryGetComponent(out ClearScreenView clearScreenView))
                 {
                     clearScreenView = gameObject.AddComponent<ClearScreenView>();
                 }
 
                 _clearScreenView = clearScreenView;
-                RefreshClearScreen();
-                _boardView.FitCamera();
-                _lastLoggedMode = _session.State.Mode;
+                if (!TryGetComponent(out StageLabelView stageLabelView))
+                {
+                    stageLabelView = gameObject.AddComponent<StageLabelView>();
+                }
+
+                _stageLabelView = stageLabelView;
+                LoadStage();
                 _updateEnabled = true;
             }
             catch (System.Exception ex)
@@ -77,6 +73,19 @@ namespace SpecterTick.Presentation
                 {
                     Debug.LogWarning("BoardSessionDriver: Keyboard.current is null; input is ignored.");
                     _keyboardNullWarningLogged = true;
+                }
+
+                return;
+            }
+
+            var navigation = StageNavigationResolver.Resolve(
+                keyboard.nKey.wasPressedThisFrame,
+                keyboard.pKey.wasPressedThisFrame);
+            if (navigation != StageNavigation.None)
+            {
+                if (_flow.Navigate(navigation))
+                {
+                    LoadStage();
                 }
 
                 return;
@@ -121,6 +130,21 @@ namespace SpecterTick.Presentation
                     _lastLoggedMode = stateAfter.Mode;
                 }
             }
+        }
+
+        private void LoadStage()
+        {
+            var stage = StageCatalog.CreateStage(_flow.CurrentIndex);
+            _session = new GridPuzzleEngineSession(stage);
+            _dispatcher = new SessionInputDispatcher(_session);
+            _boardView.Show(stage);
+            _boardView.UpdateActors(_session.State);
+            _boardView.UpdateElements(BoardElementsModelBuilder.Build(_session));
+            RefreshHud();
+            RefreshClearScreen();
+            RefreshStageLabel();
+            _boardView.FitCamera();
+            _lastLoggedMode = _session.State.Mode;
         }
 
         private static InputKeys ReadPressedKeys(Keyboard keyboard)
@@ -202,6 +226,19 @@ namespace SpecterTick.Presentation
             }
 
             _clearScreenView.Apply(ClearScreenModelBuilder.Build(_session));
+        }
+
+        private void RefreshStageLabel()
+        {
+            if (_stageLabelView == null || _flow == null)
+            {
+                return;
+            }
+
+            _stageLabelView.Apply(StageLabelModelBuilder.Build(
+                _flow.CurrentIndex,
+                _flow.StageCount,
+                StageCatalog.GetName(_flow.CurrentIndex)));
         }
     }
 }
