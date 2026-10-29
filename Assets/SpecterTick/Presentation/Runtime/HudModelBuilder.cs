@@ -9,10 +9,6 @@ namespace SpecterTick.Presentation
     {
         private const int MaxShownCommands = 8;
 
-        private const string KeysRecording = "MOVE: ARROWS/WASD  CONFIRM: ENTER  RESET: R";
-        private const string KeysPlayback = "STEP: SPACE  RESET: R";
-        private const string KeysCleared = "RESET: R";
-
         private const string SwitchesPrefix = "SWITCHES: ";
         private const string ExitSeparator = "  EXIT: ";
         private const string ExitOpen = "OPEN";
@@ -142,19 +138,19 @@ namespace SpecterTick.Presentation
                 case GameMode.Recording:
                     modeLine = "MODE: RECORDING";
                     progressLine = "RECORDED: " + recordedDirections.Count;
-                    keysLine = KeysRecording;
+                    keysLine = InputGuide.KeysLineFor(mode);
                     break;
 
                 case GameMode.Playback:
                     modeLine = "MODE: PLAYBACK";
                     progressLine = "PLAYBACK: " + playbackIndex + " / " + recordedDirections.Count;
-                    keysLine = KeysPlayback;
+                    keysLine = InputGuide.KeysLineFor(mode);
                     break;
 
                 case GameMode.Cleared:
                     modeLine = "MODE: CLEARED";
                     progressLine = "RECORDED: " + recordedDirections.Count;
-                    keysLine = KeysCleared;
+                    keysLine = InputGuide.KeysLineFor(mode);
                     break;
 
                 default:

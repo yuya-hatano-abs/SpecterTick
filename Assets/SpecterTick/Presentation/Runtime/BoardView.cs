@@ -182,7 +182,7 @@ namespace SpecterTick.Presentation
             }
             else
             {
-                Debug.LogWarning("BoardView.Start: no camera assigned and Camera.main is null.");
+                Debug.LogWarning("BoardView.FitCamera: no camera assigned and Camera.main is null.");
             }
         }
 

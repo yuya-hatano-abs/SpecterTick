@@ -18,6 +18,7 @@ namespace SpecterTick.Presentation
         private bool _updateEnabled;
         private bool _keyboardNullWarningLogged;
         private bool _startFailedLogged;
+        private ScreenSizeTracker _screenSizeTracker;
 
         private void Start()
         {
@@ -45,6 +46,9 @@ namespace SpecterTick.Presentation
                 }
 
                 _stageLabelView = stageLabelView;
+                _screenSizeTracker = new ScreenSizeTracker(
+                    Mathf.Max(1, Screen.width),
+                    Mathf.Max(1, Screen.height));
                 LoadStage();
                 _updateEnabled = true;
             }
@@ -66,6 +70,12 @@ namespace SpecterTick.Presentation
                 return;
             }
 
+            if (_screenSizeTracker != null
+                && _screenSizeTracker.Update(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height)))
+            {
+                _boardView.FitCamera();
+            }
+
             var keyboard = Keyboard.current;
             if (keyboard == null)
             {
@@ -85,7 +95,15 @@ namespace SpecterTick.Presentation
             {
                 if (_flow.Navigate(navigation))
                 {
-                    LoadStage();
+                    try
+                    {
+                        LoadStage();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _updateEnabled = false;
+                        Debug.LogError("BoardSessionDriver.LoadStage failed: " + ex.Message);
+                    }
                 }
 
                 return;
