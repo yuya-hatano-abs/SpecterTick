@@ -129,9 +129,9 @@ TextureImporter:
       name: DoorClosed_0
       rect:
         serializedVersion: 2
-        x: 32
+        x: 20
         y: 12
-        width: 191
+        width: 215
         height: 232
       alignment: 0
       pivot: {x: 0, y: 0}
