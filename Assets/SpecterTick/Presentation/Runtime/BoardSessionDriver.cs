@@ -19,6 +19,7 @@ namespace SpecterTick.Presentation
         private bool _keyboardNullWarningLogged;
         private bool _startFailedLogged;
         private ScreenSizeTracker _screenSizeTracker;
+        private BoardSkin _skin;
 
         private void Start()
         {
@@ -49,6 +50,13 @@ namespace SpecterTick.Presentation
                 _screenSizeTracker = new ScreenSizeTracker(
                     Mathf.Max(1, Screen.width),
                     Mathf.Max(1, Screen.height));
+                _skin = BoardSkinLoader.Load();
+                _boardView.ApplySkin(_skin);
+                if (_skin.MissingCount > 0)
+                {
+                    Debug.LogWarning("BoardSessionDriver: " + _skin.MissingCount + " skin sprite(s) are missing; procedural fallback is used.");
+                }
+
                 LoadStage();
                 _updateEnabled = true;
             }
@@ -60,6 +68,15 @@ namespace SpecterTick.Presentation
                     Debug.LogError("BoardSessionDriver.Start failed: " + ex.Message);
                     _startFailedLogged = true;
                 }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_skin != null)
+            {
+                _skin.Release();
+                _skin = null;
             }
         }
 

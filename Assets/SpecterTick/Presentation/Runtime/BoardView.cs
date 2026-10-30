@@ -59,6 +59,13 @@ namespace SpecterTick.Presentation
         private Transform _playerTransform;
         private Transform _specterTransform;
 
+        private BoardSkin _skin;
+
+        public void ApplySkin(BoardSkin skin)
+        {
+            _skin = skin;
+        }
+
         public void Show(IStage stage)
         {
             if (stage == null)
@@ -86,18 +93,18 @@ namespace SpecterTick.Presentation
                 for (var x = 0; x < stage.Width; x++)
                 {
                     var position = new GridPosition(x, y);
-                    CreateCell(_floorRoot, position, FloorColor, 0, sharedSprite);
+                    CreateCell(_floorRoot, position, FloorColor, 0, sharedSprite, null, _skin?.Floor);
                 }
             }
 
             var walls = stage.Walls;
             for (var i = 0; i < walls.Count; i++)
             {
-                CreateCell(_wallsRoot, walls[i], WallColor, 1, sharedSprite);
+                CreateCell(_wallsRoot, walls[i], WallColor, 1, sharedSprite, null, _skin?.Wall);
             }
 
-            _playerTransform = CreateCell(_actorsRoot, stage.PlayerPosition, PlayerColor, 3, sharedSprite, PlayerActorName).transform;
-            _specterTransform = CreateCell(_actorsRoot, stage.SpecterPosition, SpecterColor, 2, sharedSprite, SpecterActorName).transform;
+            _playerTransform = CreateCell(_actorsRoot, stage.PlayerPosition, PlayerColor, 3, sharedSprite, PlayerActorName, _skin?.Player).transform;
+            _specterTransform = CreateCell(_actorsRoot, stage.SpecterPosition, SpecterColor, 2, sharedSprite, SpecterActorName, _skin?.Specter).transform;
 
             CreateStageElements(stage);
 
@@ -257,19 +264,46 @@ namespace SpecterTick.Presentation
             switch (entry.Kind)
             {
                 case BoardElementKind.Exit:
-                    entry.Renderer.sprite = isActive ? _elementSprites[1] : _elementSprites[0];
-                    entry.Renderer.color = isActive ? ExitOpenColor : ExitClosedColor;
+                    ApplyCellLook(
+                        entry.Renderer,
+                        isActive ? _skin?.ExitOpen : _skin?.ExitClosed,
+                        isActive ? _elementSprites[1] : _elementSprites[0],
+                        isActive ? ExitOpenColor : ExitClosedColor);
                     break;
                 case BoardElementKind.Switch:
-                    entry.Renderer.sprite = isActive ? _elementSprites[3] : _elementSprites[2];
-                    entry.Renderer.color = isActive ? SwitchOnColor : SwitchOffColor;
+                    ApplyCellLook(
+                        entry.Renderer,
+                        isActive ? _skin?.SwitchOn : _skin?.SwitchOff,
+                        isActive ? _elementSprites[3] : _elementSprites[2],
+                        isActive ? SwitchOnColor : SwitchOffColor);
                     break;
                 case BoardElementKind.Door:
-                    entry.Renderer.sprite = isActive ? _elementSprites[5] : _elementSprites[4];
-                    entry.Renderer.color = isActive ? DoorOpenColor : DoorClosedColor;
+                    ApplyCellLook(
+                        entry.Renderer,
+                        isActive ? _skin?.DoorOpen : _skin?.DoorClosed,
+                        isActive ? _elementSprites[5] : _elementSprites[4],
+                        isActive ? DoorOpenColor : DoorClosedColor);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(entry));
+            }
+        }
+
+        private static void ApplyCellLook(
+            SpriteRenderer renderer,
+            Sprite skinSprite,
+            Sprite fallbackSprite,
+            Color fallbackColor)
+        {
+            if (skinSprite != null)
+            {
+                renderer.sprite = skinSprite;
+                renderer.color = Color.white;
+            }
+            else
+            {
+                renderer.sprite = fallbackSprite;
+                renderer.color = fallbackColor;
             }
         }
 
@@ -359,7 +393,8 @@ namespace SpecterTick.Presentation
             Color color,
             int sortingOrder,
             Sprite sprite,
-            string objectName = null)
+            string objectName = null,
+            Sprite skinSprite = null)
         {
             var cell = new GameObject(objectName ?? "Cell");
             cell.transform.SetParent(parent, false);
@@ -369,8 +404,7 @@ namespace SpecterTick.Presentation
                 0f);
 
             var renderer = cell.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.color = color;
+            ApplyCellLook(renderer, skinSprite, sprite, color);
             renderer.sortingOrder = sortingOrder;
             return cell;
         }
