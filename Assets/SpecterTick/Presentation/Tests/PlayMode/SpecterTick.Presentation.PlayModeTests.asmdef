@@ -1,0 +1,25 @@
+{
+    "name": "SpecterTick.Presentation.PlayModeTests",
+    "rootNamespace": "SpecterTick.Presentation.PlayModeTests",
+    "references": [
+        "SpecterTick.Core",
+        "SpecterTick.Presentation",
+        "UnityEngine.TestRunner",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
