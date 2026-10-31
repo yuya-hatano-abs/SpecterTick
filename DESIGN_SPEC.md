@@ -121,3 +121,51 @@
 
 ### 7. リトライと状態リーク防止
 - `Retry()` は新しい初期 `GameState` を再生成する処理とし、Logic層にCoroutineやGameObjectを持ち込まない。
+
+---
+
+## 第4部：実装との対応（2026-10-31 時点）
+
+本節は 2026-10-31 時点の実装を、第1部〜第3部の用語と対応づける。
+
+### (a) 用語の対応
+
+| 仕様書・旧称 | 実装（Core / Presentation） |
+|--------------|----------------------------|
+| `GameEngine` | `GridPuzzleEngineSession`（`IGameEngine` を実装） |
+| `GameEngine.Step`（1 Tick） | Recording: `GridPuzzleEngineSession.Step(MoveDirection)` / 確定: `ConfirmRecording()` / Playback: `StepPlayback()` / リセット: `Retry()` |
+| Presentation 層のキー解釈 | `BoardSessionDriver.ReadPressedKeys` → `InputIntentResolver` → `SessionInputDispatcher` |
+
+### (b) 仕様書に明示がなく実装・テストで確定した Core の規則
+
+| 規則 | 根拠 |
+|------|------|
+| ドアは参照スイッチがすべて作動しているとき開く | `GridPuzzleEngineSessionSwitchDoorTests`（例: AND ドア Dab） |
+| 出口は全スイッチ作動で開く。スイッチ 0 個なら最初から開く | `Session_ZeroSwitches_AllSwitchesActivatedAndExitOpen_AreTrueAtTickZero` |
+| スイッチはラッチ | `StageLayoutSnapshotLatchTests` |
+| `ConfirmRecording` で作動状態を空に戻し、Player / Specter 初期位置で再評価 | `GridPuzzleEngineSessionRecordingPlaybackTests` G9a / G9b |
+| 壁・閉ドア等で拒否された移動も記録され Tick は進む | `Step_Recording_RejectedMove_StillAppendsCommand` |
+| 記録 0 件で `ConfirmRecording` しても Playback になる | `ConfirmRecording_EmptySequence_AllowsPlaybackFinished` |
+| Recording 中は Cleared にならない | `Recording_F2_G11_NoClearWhileRecording` |
+| Player は Specter のマスへ移動できる（特別扱いなし） | `GridPuzzleEngineSessionTests.Step_PlayerCanEnterSpecterCell_NoSpecialHandling` |
+| 閉じた出口マスへ Player が入れる | `Step_F2_EnterExit_WhileSwitchesInactive_MovesSuccessfully`（`GridPuzzleEngineSessionSwitchDoorTests`） |
+| `Retry()` は全モードから呼べる | `GridPuzzleEngineSessionRetryTests`、Presentation `SessionInputDispatcher` Retry 分岐 |
+
+### (c) Presentation の対応
+
+| 項目 | 実装 |
+|------|------|
+| キー割り当て（表示文言の単一情報源） | `InputGuide.cs`（MOVE / CONFIRM / STEP / RESET） |
+| ステージ切替 N / P | `StageNavigationResolver` + `StageFlow` + `BoardSessionDriver` |
+| HUD / クリア / ステージ名 | `HudModelBuilder` / `ClearScreenModelBuilder` / `StageLabelModelBuilder` と各 View |
+| 任意スキン | `BoardSkinLoader` + `BoardView.ApplySkin`（未適用時は図形描画のまま） |
+
+### (d) 未実装・MVP 外
+
+| 項目 | 状態 |
+|------|------|
+| 仕様書 §4.1 の EditorWindow による簡易デバッグツール | **未実装**（EditMode / PlayMode テスト対象に EditorWindow なし） |
+| Playback の Space と HUD 表示 | **あり**（簡易デバッグの一部として README に記載） |
+| 仕様 §1.1「内蔵 GPU で快適」 | **未測定**（性能数値の記録なし） |
+| 仕様 §1.3 に列挙した MVP 外機能（物理ジャンプ、ランダム生成、オンライン等） | 実装なし（意図どおり） |
+| TWIN / TANGLE の「最短解不存在」の全探索 | **未検証**（`StageSolutionTests` クラスコメント） |
