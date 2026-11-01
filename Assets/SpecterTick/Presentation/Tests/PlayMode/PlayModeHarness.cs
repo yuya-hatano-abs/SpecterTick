@@ -124,6 +124,198 @@ namespace SpecterTick.Presentation.PlayModeTests
             return actors == null ? null : actors.Find(actorName);
         }
 
+        public static bool ScreenRectsOverlap(ScreenRect a, ScreenRect b)
+        {
+            if (a.Right <= b.Left || a.Left >= b.Right)
+            {
+                return false;
+            }
+
+            if (a.Top <= b.Bottom || a.Bottom >= b.Top)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static string FormatScreenRect(ScreenRect rect)
+        {
+            return "L="
+                + rect.Left.ToString("F1")
+                + " R="
+                + rect.Right.ToString("F1")
+                + " B="
+                + rect.Bottom.ToString("F1")
+                + " T="
+                + rect.Top.ToString("F1");
+        }
+
+        public static bool TryGetPanelScreenRect(GameObject board, int sortingOrder, out ScreenRect rect)
+        {
+            rect = default;
+            if (board == null)
+            {
+                return false;
+            }
+
+            var canvases = board.GetComponentsInChildren<Canvas>(true);
+            for (var i = 0; i < canvases.Length; i++)
+            {
+                var canvas = canvases[i];
+                if (!canvas.isRootCanvas || canvas.sortingOrder != sortingOrder)
+                {
+                    continue;
+                }
+
+                Canvas.ForceUpdateCanvases();
+                var images = canvas.GetComponentsInChildren<Image>(true);
+                if (images.Length == 0)
+                {
+                    return false;
+                }
+
+                var corners = new Vector3[4];
+                images[0].rectTransform.GetWorldCorners(corners);
+                var left = corners[0].x;
+                var right = corners[0].x;
+                var bottom = corners[0].y;
+                var top = corners[0].y;
+                for (var c = 1; c < corners.Length; c++)
+                {
+                    left = Math.Min(left, corners[c].x);
+                    right = Math.Max(right, corners[c].x);
+                    bottom = Math.Min(bottom, corners[c].y);
+                    top = Math.Max(top, corners[c].y);
+                }
+
+                rect = new ScreenRect
+                {
+                    Left = left,
+                    Right = right,
+                    Bottom = bottom,
+                    Top = top
+                };
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryGetFloorScreenBounds(GameObject board, Camera camera, out ScreenRect rect)
+        {
+            rect = default;
+            if (board == null || camera == null)
+            {
+                return false;
+            }
+
+            var floor = board.transform.Find(BoardView.FloorContainerName);
+            if (floor == null || floor.childCount == 0)
+            {
+                return false;
+            }
+
+            var left = float.PositiveInfinity;
+            var right = float.NegativeInfinity;
+            var bottom = float.PositiveInfinity;
+            var top = float.NegativeInfinity;
+            for (var i = 0; i < floor.childCount; i++)
+            {
+                var world = floor.GetChild(i).position;
+                var half = 0.5f;
+                var bl = camera.WorldToScreenPoint(new Vector3(world.x - half, world.y - half, world.z));
+                var tr = camera.WorldToScreenPoint(new Vector3(world.x + half, world.y + half, world.z));
+                left = Math.Min(left, Math.Min(bl.x, tr.x));
+                right = Math.Max(right, Math.Max(bl.x, tr.x));
+                bottom = Math.Min(bottom, Math.Min(bl.y, tr.y));
+                top = Math.Max(top, Math.Max(bl.y, tr.y));
+            }
+
+            rect = new ScreenRect
+            {
+                Left = left,
+                Right = right,
+                Bottom = bottom,
+                Top = top
+            };
+            return true;
+        }
+
+        public static bool TryGetFloorViewportBounds(GameObject board, Camera camera, out FloorViewportBounds bounds)
+        {
+            bounds = default;
+            if (board == null || camera == null)
+            {
+                return false;
+            }
+
+            var floor = board.transform.Find(BoardView.FloorContainerName);
+            if (floor == null || floor.childCount == 0)
+            {
+                return false;
+            }
+
+            var minX = float.PositiveInfinity;
+            var maxX = float.NegativeInfinity;
+            var minY = float.PositiveInfinity;
+            var maxY = float.NegativeInfinity;
+            var centerXSum = 0f;
+            var centerYSum = 0f;
+            for (var i = 0; i < floor.childCount; i++)
+            {
+                var world = floor.GetChild(i).position;
+                var half = 0.5f;
+                var bl = camera.WorldToViewportPoint(new Vector3(world.x - half, world.y - half, world.z));
+                var tr = camera.WorldToViewportPoint(new Vector3(world.x + half, world.y + half, world.z));
+                minX = Math.Min(minX, Math.Min(bl.x, tr.x));
+                maxX = Math.Max(maxX, Math.Max(bl.x, tr.x));
+                minY = Math.Min(minY, Math.Min(bl.y, tr.y));
+                maxY = Math.Max(maxY, Math.Max(bl.y, tr.y));
+                var center = camera.WorldToViewportPoint(world);
+                centerXSum += center.x;
+                centerYSum += center.y;
+            }
+
+            var count = floor.childCount;
+            bounds = new FloorViewportBounds
+            {
+                MinX = minX,
+                MaxX = maxX,
+                MinY = minY,
+                MaxY = maxY,
+                CenterX = centerXSum / count,
+                CenterY = centerYSum / count
+            };
+            return true;
+        }
+
+        internal struct FloorViewportBounds
+        {
+            public float MinX;
+
+            public float MaxX;
+
+            public float MinY;
+
+            public float MaxY;
+
+            public float CenterX;
+
+            public float CenterY;
+        }
+
+        internal struct ScreenRect
+        {
+            public float Left;
+
+            public float Right;
+
+            public float Bottom;
+
+            public float Top;
+        }
+
         internal sealed class LogCapture : IDisposable
         {
             private readonly List<string> _messages = new List<string>();

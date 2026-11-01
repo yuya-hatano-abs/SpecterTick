@@ -52,6 +52,34 @@ namespace SpecterTick.Presentation.PlayModeTests
             yield return null;
         }
 
+        private IEnumerator TapRecording(string moves)
+        {
+            var keyboard = Keyboard.current;
+            for (var i = 0; i < moves.Length; i++)
+            {
+                KeyControl key;
+                switch (moves[i])
+                {
+                    case 'L':
+                        key = keyboard.leftArrowKey;
+                        break;
+                    case 'R':
+                        key = keyboard.rightArrowKey;
+                        break;
+                    case 'U':
+                        key = keyboard.upArrowKey;
+                        break;
+                    case 'D':
+                        key = keyboard.downArrowKey;
+                        break;
+                    default:
+                        throw new System.InvalidOperationException("Unexpected recording character: " + moves[i]);
+                }
+
+                yield return Tap(key);
+            }
+        }
+
         private IEnumerator TapEchoSetup()
         {
             InputSystem.AddDevice<Keyboard>();
@@ -539,7 +567,97 @@ namespace SpecterTick.Presentation.PlayModeTests
 
         [UnityTest]
         [Timeout(60000)]
-        public IEnumerator PM11_FitCamera_FollowsStage()
+        public IEnumerator PM11_FitCamera_FitsInsetBandAcrossStages()
+        {
+            // Viewport band checks use BoardScreenInsets.Compute at the actual Screen size (Editor Game view or batchmode).
+            InputSystem.AddDevice<Keyboard>();
+            _board = PlayModeHarness.CreateBoard();
+            yield return null;
+            yield return null;
+            var keyboard = Keyboard.current;
+
+            AssertFitCameraFitsInsetBand("WALK", 1.5f);
+
+            yield return Tap(keyboard.nKey);
+            AssertFitCameraFitsInsetBand("ECHO", 2.0f);
+
+            yield return Tap(keyboard.nKey);
+            yield return Tap(keyboard.nKey);
+            yield return Tap(keyboard.nKey);
+            AssertFitCameraFitsInsetBand("TANGLE", 2.5f);
+
+            yield return Tap(keyboard.pKey);
+            Assert.That(LabelText(_board), Does.Contain("STAGE 4 / 5  TWIN"));
+            AssertFitCameraFitsInsetBand("TWIN", 2.5f);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private void AssertFitCameraFitsInsetBand(string stageLabel, float expectedCameraX)
+        {
+            var screenWidth = Mathf.Max(1, Screen.width);
+            var screenHeight = Mathf.Max(1, Screen.height);
+            var insets = BoardScreenInsets.Compute(screenWidth, screenHeight);
+            var top = insets.Top;
+            var bottom = insets.Bottom;
+            var bandCenterY = bottom + (1f - top - bottom) / 2f;
+            var viewportTopLimit = 1f - top;
+
+            Assert.That(_camera.transform.position.x, Is.EqualTo(expectedCameraX).Within(0.0001f));
+            Assert.That(_camera.transform.position.z, Is.EqualTo(-10f).Within(0.0001f));
+
+            var prefix = stageLabel
+                + " Screen="
+                + screenWidth
+                + "x"
+                + screenHeight
+                + " Top="
+                + top.ToString("F6")
+                + " Bottom="
+                + bottom.ToString("F6")
+                + " bandCenterY="
+                + bandCenterY.ToString("F6");
+
+            Assert.That(
+                PlayModeHarness.TryGetFloorViewportBounds(_board, _camera, out var floor),
+                Is.True,
+                prefix + " floor viewport bounds missing");
+
+            Assert.That(
+                floor.MinY,
+                Is.GreaterThanOrEqualTo(bottom - 0.001f),
+                prefix
+                    + " floorMinY="
+                    + floor.MinY.ToString("F6")
+                    + " expected>="
+                    + bottom.ToString("F6"));
+
+            Assert.That(
+                floor.MaxY,
+                Is.LessThanOrEqualTo(viewportTopLimit + 0.001f),
+                prefix
+                    + " floorMaxY="
+                    + floor.MaxY.ToString("F6")
+                    + " expected<="
+                    + viewportTopLimit.ToString("F6"));
+
+            Assert.That(
+                floor.CenterY,
+                Is.EqualTo(bandCenterY).Within(0.001f),
+                prefix
+                    + " floorCenterY="
+                    + floor.CenterY.ToString("F6"));
+
+            Assert.That(
+                floor.CenterX,
+                Is.EqualTo(0.5f).Within(0.001f),
+                prefix
+                    + " floorCenterX="
+                    + floor.CenterX.ToString("F6"));
+        }
+
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator PM12_Panels_DoNotOverlapBoard()
         {
             InputSystem.AddDevice<Keyboard>();
             _board = PlayModeHarness.CreateBoard();
@@ -547,25 +665,113 @@ namespace SpecterTick.Presentation.PlayModeTests
             yield return null;
             var keyboard = Keyboard.current;
 
-            Assert.That(_camera.transform.position.x, Is.EqualTo(1.5f).Within(0.0001f));
-            Assert.That(_camera.transform.position.y, Is.EqualTo(1.0f).Within(0.0001f));
-            Assert.That(_camera.transform.position.z, Is.EqualTo(-10f).Within(0.0001f));
+            AssertNoPanelOverlap("WALK");
 
             yield return Tap(keyboard.nKey);
-            Assert.That(_camera.transform.position.x, Is.EqualTo(2.0f).Within(0.0001f));
-            Assert.That(_camera.transform.position.y, Is.EqualTo(1.0f).Within(0.0001f));
+            AssertNoPanelOverlap("ECHO");
 
             yield return Tap(keyboard.nKey);
+            AssertNoPanelOverlap("GATE");
+
             yield return Tap(keyboard.nKey);
+            AssertNoPanelOverlap("TWIN");
+
             yield return Tap(keyboard.nKey);
-            Assert.That(_camera.transform.position.x, Is.EqualTo(2.5f).Within(0.0001f));
-            Assert.That(_camera.transform.position.y, Is.EqualTo(1.5f).Within(0.0001f));
+            AssertNoPanelOverlap("TANGLE");
 
             yield return Tap(keyboard.pKey);
-            Assert.That(LabelText(_board), Does.Contain("STAGE 4 / 5  TWIN"));
-            Assert.That(_camera.transform.position.x, Is.EqualTo(2.5f).Within(0.0001f));
-            Assert.That(_camera.transform.position.y, Is.EqualTo(1.5f).Within(0.0001f));
+            yield return Tap(keyboard.pKey);
+            yield return Tap(keyboard.pKey);
+            yield return Tap(keyboard.pKey);
+            Assert.That(LabelText(_board), Does.Contain("STAGE 1 / 5  WALK"));
+
+            yield return Tap(keyboard.upArrowKey);
+            yield return Tap(keyboard.upArrowKey);
+            yield return Tap(keyboard.rightArrowKey);
+            yield return Tap(keyboard.rightArrowKey);
+            yield return Tap(keyboard.rightArrowKey);
+            yield return Tap(keyboard.rightArrowKey);
+            ExpectModeChangedLog("Cleared", 0);
+            yield return Tap(keyboard.enterKey);
+            yield return null;
+            yield return null;
+
+            AssertNoPanelOverlap("WALK cleared", includeClearPanel: true);
+
+            for (var stageIndex = 0; stageIndex < 4; stageIndex++)
+            {
+                yield return Tap(keyboard.nKey);
+            }
+
+            Assert.That(LabelText(_board), Does.Contain("STAGE 5 / 5  TANGLE"));
+            yield return TapRecording("LLURURRLUURR");
+            ExpectModeChangedLog("Playback", 0);
+            yield return Tap(keyboard.enterKey);
+            for (var step = 0; step < 11; step++)
+            {
+                yield return Tap(keyboard.spaceKey);
+            }
+
+            ExpectModeChangedLog("Cleared", 12);
+            yield return Tap(keyboard.spaceKey);
+            yield return null;
+            yield return null;
+
+            AssertNoPanelOverlap("TANGLE cleared", includeClearPanel: true);
             LogAssert.NoUnexpectedReceived();
+        }
+
+        private void AssertNoPanelOverlap(string stageLabel, bool includeClearPanel = false)
+        {
+            Canvas.ForceUpdateCanvases();
+            Assert.That(
+                PlayModeHarness.TryGetFloorScreenBounds(_board, _camera, out var floor),
+                Is.True,
+                stageLabel + ": floor bounds missing");
+
+            Assert.That(
+                PlayModeHarness.TryGetPanelScreenRect(_board, 100, out var hud),
+                Is.True,
+                stageLabel + ": HUD panel missing");
+            Assert.That(
+                PlayModeHarness.ScreenRectsOverlap(floor, hud),
+                Is.False,
+                stageLabel
+                    + ": floor overlaps HUD "
+                    + PlayModeHarness.FormatScreenRect(floor)
+                    + " vs "
+                    + PlayModeHarness.FormatScreenRect(hud));
+
+            Assert.That(
+                PlayModeHarness.TryGetPanelScreenRect(_board, 95, out var label),
+                Is.True,
+                stageLabel + ": stage label missing");
+            Assert.That(
+                PlayModeHarness.ScreenRectsOverlap(floor, label),
+                Is.False,
+                stageLabel
+                    + ": floor overlaps label "
+                    + PlayModeHarness.FormatScreenRect(floor)
+                    + " vs "
+                    + PlayModeHarness.FormatScreenRect(label));
+
+            if (!includeClearPanel)
+            {
+                return;
+            }
+
+            Assert.That(
+                PlayModeHarness.TryGetPanelScreenRect(_board, 110, out var clear),
+                Is.True,
+                stageLabel + ": clear panel missing");
+            Assert.That(
+                PlayModeHarness.ScreenRectsOverlap(floor, clear),
+                Is.False,
+                stageLabel
+                    + ": floor overlaps clear "
+                    + PlayModeHarness.FormatScreenRect(floor)
+                    + " vs "
+                    + PlayModeHarness.FormatScreenRect(clear));
         }
     }
 }

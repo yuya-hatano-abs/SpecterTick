@@ -180,6 +180,54 @@ namespace SpecterTick.Presentation
             camera.orthographicSize = size;
         }
 
+        public void FitCamera(Camera camera, float topInset, float bottomInset)
+        {
+            if (!_isBoardBuilt)
+            {
+                throw new InvalidOperationException("Show must be called before FitCamera.");
+            }
+
+            if (camera == null)
+            {
+                throw new ArgumentNullException(nameof(camera));
+            }
+
+            if (topInset < 0f || topInset >= 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(topInset));
+            }
+
+            if (bottomInset < 0f || bottomInset >= 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bottomInset));
+            }
+
+            if (topInset + bottomInset >= 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(topInset));
+            }
+
+            if (!camera.orthographic)
+            {
+                Debug.LogWarning("BoardView.FitCamera requires an orthographic camera.");
+                return;
+            }
+
+            var aspect = camera.aspect;
+            var availableHeightFraction = 1f - topInset - bottomInset;
+            var bandCenterY = bottomInset + (availableHeightFraction / 2f);
+            var verticalHalfExtent = (_stageHeight + BoardScreenInsets.VerticalPadding) * cellSize / (2f * availableHeightFraction);
+            var horizontalHalfExtent = (_stageWidth + 2) * cellSize / (2f * aspect);
+            var size = Math.Max(verticalHalfExtent, horizontalHalfExtent);
+
+            _mapper.GetBoardCenter(_stageWidth, _stageHeight, out var centerX, out var centerY);
+            centerY += (0.5f - bandCenterY) * 2f * size;
+
+            var position = camera.transform.position;
+            camera.transform.position = new Vector3(centerX, centerY, position.z);
+            camera.orthographicSize = size;
+        }
+
         public void FitCamera()
         {
             var camera = targetCamera != null ? targetCamera : Camera.main;

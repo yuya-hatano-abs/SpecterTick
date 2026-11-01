@@ -90,7 +90,7 @@ namespace SpecterTick.Presentation
             if (_screenSizeTracker != null
                 && _screenSizeTracker.Update(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height)))
             {
-                _boardView.FitCamera();
+                FitBoardCamera();
             }
 
             var keyboard = Keyboard.current;
@@ -178,8 +178,23 @@ namespace SpecterTick.Presentation
             RefreshHud();
             RefreshClearScreen();
             RefreshStageLabel();
-            _boardView.FitCamera();
+            FitBoardCamera();
             _lastLoggedMode = _session.State.Mode;
+        }
+
+        private void FitBoardCamera()
+        {
+            var width = Mathf.Max(1, Screen.width);
+            var height = Mathf.Max(1, Screen.height);
+            var insets = BoardScreenInsets.Compute(width, height);
+            var camera = Camera.main;
+            if (camera == null)
+            {
+                _boardView.FitCamera();
+                return;
+            }
+
+            _boardView.FitCamera(camera, insets.Top, insets.Bottom);
         }
 
         private static InputKeys ReadPressedKeys(Keyboard keyboard)
