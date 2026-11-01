@@ -12,7 +12,8 @@
 
 ![プレイ画面](docs/images/screenshot.png)
 
-![ECHO を解く様子](docs/images/gameplay.gif)
+![ECHO を解く様子]<img width="960" height="556" alt="gameplay" src="https://github.com/user-attachments/assets/9c083a50-6618-4ac5-962f-b3b463b150cc" />
+
 
 ## 遊び方
 
