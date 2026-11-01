@@ -8,6 +8,12 @@
 
 **SPECTER//TICK** は、プレイヤーが移動コマンドを記録し、確定後に **Specter（残像）** が同じ列を再生して、スイッチとドアを協力させる **2D グリッドパズル** です。ロジックは UPM パッケージ `com.yuya_hatano.specter-tick-core`（別リポジトリ）にあり、本リポジトリは Unity 上の入力・描画・UI を担当します。
 
+## プレイ画面
+
+![プレイ画面](docs/images/screenshot.png)
+
+![ECHO を解く様子](docs/images/gameplay.gif)
+
 ## 遊び方
 
 | モード | 主な操作（`InputGuide.cs`） |
