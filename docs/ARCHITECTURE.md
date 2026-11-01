@@ -77,7 +77,7 @@ Presentation が呼ぶエンジン API: `Step`、`ConfirmRecording`、`StepPlayb
 | Player は Specter のマスに入れる | `GridPuzzleEngineSessionTests.Step_PlayerCanEnterSpecterCell_NoSpecialHandling` |
 | 全モードから Retry | `GridPuzzleEngineSessionRetryTests`、PlayMode `PM4_Retry_FromAllModes` |
 
-## Presentation（`Runtime/` — 30 個の .cs ファイル）
+## Presentation（`Runtime/` — 31 個の .cs ファイル）
 
 アセンブリ: `SpecterTick.Presentation.asmdef`（Core、Input System、UGUI を参照）。
 
@@ -106,6 +106,8 @@ Presentation が呼ぶエンジン API: `Step`、`ConfirmRecording`、`StepPlayb
 
 初期表示: `LoadStage()` が `BoardView.Show(stage)` と上記リフレッシュを呼ぶ。
 
+`BoardScreenInsets` は Unity に依存しない純粋計算で、HUD・ステージラベル・クリア画面のパネル高さを、`CanvasScaler`（基準 1280×720、`matchWidthOrHeight` 0.5）と同じ拡大率で画面高さに対する割合（上帯・下帯）に換算する。`BoardView.FitCamera(Camera, topInset, bottomInset)` は、その上下帯の間に盤面全体が収まるよう正射影カメラのサイズと位置を調整する（既存の引数なし `FitCamera` は従来どおり）。`BoardSessionDriver.FitBoardCamera` が `BoardScreenInsets.Compute` の結果を渡してこれを呼び、`LoadStage()` 完了時と、`ScreenSizeTracker` が画面サイズの変化を検知した `Update` 内で再実行する。
+
 ### スキン（任意）
 
 `BoardSessionDriver.Start` が `BoardSkinLoader.Load()` と `BoardView.ApplySkin` を呼ぶ。スプライト欠落時は図形描画のまま（`BoardSkin.MissingCount`、警告ログ）。テスト: `BoardViewSkinTests`、`SkinAssetQualityTests`。
@@ -121,8 +123,8 @@ Presentation Runtime で `Resources.Load` を呼ぶのは **`BoardSkinLoader.cs`
 | レイヤー | アセンブリ | 件数 | 役割 |
 |----------|------------|-----:|------|
 | Core EditMode | `SpecterTick.Core.Tests` | 286 | ルール、検証、決定性、リトライ、スイッチ/ドア |
-| Presentation EditMode | `SpecterTick.Presentation.Tests` | 163 | モデル、View、カタログ解、ビルド設定 |
-| PlayMode | `SpecterTick.Presentation.PlayModeTests` | 11 | `BoardSessionDriver` 統合（入力、HUD、モード） |
+| Presentation EditMode | `SpecterTick.Presentation.Tests` | 180 | モデル、View、カタログ解、ビルド設定、盤面インセット |
+| PlayMode | `SpecterTick.Presentation.PlayModeTests` | 12 | `BoardSessionDriver` 統合（入力、HUD、モード、カメラ帯） |
 
 **キャラクタリゼーション:** Core セッションテストのゴールデン列、`StageSolutionTests` の SS/SN/SX。
 

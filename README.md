@@ -1,6 +1,6 @@
 # SPECTER//TICK
 
-**English summary:** SPECTER//TICK is a 2D grid puzzle where you record movement commands, confirm with Enter, then watch a Specter replay them so switches and doors open the exit. Core logic lives in a Unity-free UPM package; this repo is the Unity Presentation layer with 449 EditMode and 11 PlayMode tests. Five stages ship in `StageCatalog`. Windows 64-bit Mono standalone builds were verified via batchmode using a working-copy layout described in `docs/BUILD.md`.
+**English summary:** SPECTER//TICK is a 2D grid puzzle where you record movement commands, confirm with Enter, then watch a Specter replay them so switches and doors open the exit. Core logic lives in a Unity-free UPM package; this repo is the Unity Presentation layer with 466 EditMode and 12 PlayMode tests. Five stages ship in `StageCatalog`. Windows 64-bit Mono standalone builds were verified via batchmode using a working-copy layout described in `docs/BUILD.md`.
 
 ---
 
@@ -37,7 +37,7 @@
 - **3 層:** Core（Data + Logic、Unity 非依存）と Presentation（入力・描画・UI）。Core は `noEngineReferences: true`（`SpecterTick.Core.asmdef`）。
 - **UPM 参照:** `Packages/manifest.json` の `file:../../SpecterTick.Core`（兄弟フォルダ配置）。詳細は [docs/BUILD.md](docs/BUILD.md)。
 - **決定性:** 同じ初期状態と同じコマンド列で同じ結果になるよう Core をテスト（例: `GridPuzzleEngineSessionDeterminismTests`）。
-- **テスト:** EditMode **449**（Core 286 + Presentation 163）、PlayMode **11**（`SpecterTick.Presentation.PlayModeTests`）。
+- **テスト:** EditMode **466**（Core 286 + Presentation 180）、PlayMode **12**（`SpecterTick.Presentation.PlayModeTests`）。
 - **非空虚性:** 開発時に、期待を壊した変異を適用して、対応するテストだけが失敗することを確認した（記録はリポジトリに含まない）。
 
 ## セットアップとビルド
@@ -55,9 +55,9 @@ SpecterTick/
   Assets/
     Scenes/SampleScene.unity
     SpecterTick/Presentation/
-      Runtime/          … 30 C# + asmdef
+      Runtime/          … 31 C# + asmdef
       Tests/Editor/     … Presentation EditMode
-      Tests/PlayMode/   … PlayMode 11 件
+      Tests/PlayMode/   … PlayMode 12 件
       Resources/Skin/   … 任意スキン PNG 10 枚
   Packages/manifest.json
   ProjectSettings/
