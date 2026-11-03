@@ -1,6 +1,6 @@
 # SPECTER//TICK
 
-**English summary:** SPECTER//TICK is a 2D grid puzzle where you record movement commands, confirm with Enter, then watch a Specter replay them so switches and doors open the exit. Core logic lives in a Unity-free UPM package; this repo is the Unity Presentation layer with 466 EditMode and 12 PlayMode tests. Five stages ship in `StageCatalog`. Windows 64-bit Mono standalone builds were verified via batchmode using a working-copy layout described in `docs/BUILD.md`.
+**English summary:** SPECTER//TICK is a 2D grid puzzle where you record movement commands, confirm with Enter, then watch a Specter replay them so switches and doors open the exit. Core logic lives in a Unity-free UPM package; this repo is the Unity Presentation layer with 492 EditMode and 19 PlayMode tests. Five stages ship in `StageCatalog`. On launch, an English how-to-play overlay appears (press any key to continue; **H** reopens it). Windows 64-bit Mono standalone builds were verified via batchmode using a working-copy layout described in `docs/BUILD.md`.
 
 ---
 
@@ -12,7 +12,7 @@
 
 ![プレイ画面](docs/images/screenshot.png)
 
-![ECHO を解く様子]<img width="960" height="556" alt="gameplay" src="https://github.com/user-attachments/assets/9c083a50-6618-4ac5-962f-b3b463b150cc" />
+<img width="960" height="556" alt="gameplay" src="https://github.com/user-attachments/assets/9c083a50-6618-4ac5-962f-b3b463b150cc" />
 
 
 ## 遊び方
@@ -23,7 +23,7 @@
 | Playback | 1 Tick 進行: **Space**、リセット: **R** |
 | Cleared | リセット: **R** |
 
-流れ: **記録 → Enter で確定 → Playback で Space を押して Specter を進める → 出口条件を満たしてクリア**。ステージ切替: **N**（次） / **P**（前、端でクランプ）。
+流れ: **記録 → Enter で確定 → Playback で Space を押して Specter を進める → 出口条件を満たしてクリア**。起動時に **How to play** オーバーレイ（英語）が表示され、任意のキーで閉じられます。**H** でいつでも開き直せます。ステージ切替: **N**（次） / **P**（前、端でクランプ）。
 
 ルールの詳細は [DESIGN_SPEC.md](DESIGN_SPEC.md) と [docs/STAGE_GUIDE.md](docs/STAGE_GUIDE.md) を参照してください。
 
@@ -44,7 +44,7 @@
 - **3 層:** Core（Data + Logic、Unity 非依存）と Presentation（入力・描画・UI）。Core は `noEngineReferences: true`（`SpecterTick.Core.asmdef`）。
 - **UPM 参照:** `Packages/manifest.json` の `file:../../SpecterTick.Core`（兄弟フォルダ配置）。詳細は [docs/BUILD.md](docs/BUILD.md)。
 - **決定性:** 同じ初期状態と同じコマンド列で同じ結果になるよう Core をテスト（例: `GridPuzzleEngineSessionDeterminismTests`）。
-- **テスト:** EditMode **466**（Core 286 + Presentation 180）、PlayMode **12**（`SpecterTick.Presentation.PlayModeTests`）。
+- **テスト:** EditMode **492**（Core 286 + Presentation 206）、PlayMode **19**（`SpecterTick.Presentation.PlayModeTests`）。
 - **非空虚性:** 開発時に、期待を壊した変異を適用して、対応するテストだけが失敗することを確認した（記録はリポジトリに含まない）。
 
 ## セットアップとビルド
@@ -62,9 +62,9 @@ SpecterTick/
   Assets/
     Scenes/SampleScene.unity
     SpecterTick/Presentation/
-      Runtime/          … 31 C# + asmdef
+      Runtime/          … 35 C# + asmdef
       Tests/Editor/     … Presentation EditMode
-      Tests/PlayMode/   … PlayMode 12 件
+      Tests/PlayMode/   … PlayMode 19 件
       Resources/Skin/   … 任意スキン PNG 10 枚
   Packages/manifest.json
   ProjectSettings/
@@ -83,6 +83,7 @@ SpecterTick.Core/       … 別リポジトリ（UPM）
 | MVP: 簡易デバッグ | **一部:** Playback の **Space**（`InputGuide` の STEP）と **HUD** による状態表示。**未実装:** 仕様書 §4.1 の **EditorWindow** デバッグツール |
 | 演出・アニメーション・サウンド | なし |
 | HUD / ステージラベル / クリア画面 | スキン対象外（図形＋テキスト） |
+| How to play オーバーレイ（起動時・**H**） | 実装済み（英語 ASCII、`HowToPlayView`） |
 | 図形の Player / Specter 区別 | コントラスト比 **1.13**（`PaletteContrastTests`） |
 | スキン PNG の Player vs Specter 輝度比 | **1.5 以上**（`SkinAssetQualityTests.AS5`） |
 | 内蔵 GPU での快適さ | **未測定**（FPS/メモリの記録なし） |

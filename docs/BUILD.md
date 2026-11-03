@@ -81,7 +81,7 @@ New-Item -ItemType Directory -Force -Path $Out | Out-Null
 
 `-runTests` では **`-quit` を付けない**（Unity がテスト後に終了する）。結果 XML の **total** 件数を必ず確認する。
 
-### EditMode（466 件想定）
+### EditMode（492 件想定）
 
 ```powershell
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -98,9 +98,9 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-想定: **466** 件、失敗 **0**（`SpecterTick.Core.Tests` 286 + `SpecterTick.Presentation.Tests` 180）。
+想定: **492** 件、失敗 **0**（`SpecterTick.Core.Tests` 286 + `SpecterTick.Presentation.Tests` 206）。
 
-### PlayMode（12 件想定）
+### PlayMode（19 件想定）
 
 ```powershell
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -117,7 +117,7 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-想定: **12** 件、失敗 **0**。
+想定: **19** 件、失敗 **0**。
 
 ### Unity Test Runner（GUI）
 

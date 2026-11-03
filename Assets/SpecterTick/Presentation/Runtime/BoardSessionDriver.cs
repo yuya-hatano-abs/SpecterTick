@@ -20,6 +20,10 @@ namespace SpecterTick.Presentation
         private bool _startFailedLogged;
         private ScreenSizeTracker _screenSizeTracker;
         private BoardSkin _skin;
+        private HowToPlayView _howToPlayView;
+        private HowToPlayState _howToPlayState;
+
+        public bool ShowHowToPlayOnStart { get; set; } = true;
 
         private void Start()
         {
@@ -47,6 +51,13 @@ namespace SpecterTick.Presentation
                 }
 
                 _stageLabelView = stageLabelView;
+                if (!TryGetComponent(out HowToPlayView howToPlayView))
+                {
+                    howToPlayView = gameObject.AddComponent<HowToPlayView>();
+                }
+
+                _howToPlayView = howToPlayView;
+                _howToPlayState = new HowToPlayState();
                 _screenSizeTracker = new ScreenSizeTracker(
                     Mathf.Max(1, Screen.width),
                     Mathf.Max(1, Screen.height));
@@ -58,6 +69,17 @@ namespace SpecterTick.Presentation
                 }
 
                 LoadStage();
+                _howToPlayView.Apply(HowToPlayModelBuilder.Build(), _skin);
+                if (ShowHowToPlayOnStart)
+                {
+                    _howToPlayState.Open();
+                    _howToPlayView.SetVisible(true);
+                }
+                else
+                {
+                    _howToPlayView.SetVisible(false);
+                }
+
                 _updateEnabled = true;
             }
             catch (System.Exception ex)
@@ -103,6 +125,29 @@ namespace SpecterTick.Presentation
                 }
 
                 return;
+            }
+
+            var helpPressed = keyboard.hKey.wasPressedThisFrame;
+            var anyKeyPressed = keyboard.anyKey.wasPressedThisFrame;
+            if (_howToPlayState != null && _howToPlayView != null)
+            {
+                var howToAction = _howToPlayState.Update(helpPressed, anyKeyPressed);
+                if (howToAction == HowToPlayAction.Opened)
+                {
+                    _howToPlayView.SetVisible(true);
+                    return;
+                }
+
+                if (howToAction == HowToPlayAction.Closed)
+                {
+                    _howToPlayView.SetVisible(false);
+                    return;
+                }
+
+                if (_howToPlayState.IsOpen)
+                {
+                    return;
+                }
             }
 
             var navigation = StageNavigationResolver.Resolve(

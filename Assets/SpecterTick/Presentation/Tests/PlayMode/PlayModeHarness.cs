@@ -23,7 +23,8 @@ namespace SpecterTick.Presentation.PlayModeTests
         public static GameObject CreateBoard()
         {
             var board = new GameObject("Board");
-            board.AddComponent<BoardSessionDriver>();
+            var driver = board.AddComponent<BoardSessionDriver>();
+            driver.ShowHowToPlayOnStart = false;
             return board;
         }
 

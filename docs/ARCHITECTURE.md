@@ -19,7 +19,7 @@ SpecterTick.Core/            ← com.yuya_hatano.specter-tick-core 0.1.0
 flowchart TB
   subgraph presentation [Presentation Unity]
     Driver[BoardSessionDriver]
-    Views[BoardView HudView ClearScreenView StageLabelView]
+    Views[BoardView HudView ClearScreenView StageLabelView HowToPlayView]
     Pure[InputIntentResolver SessionInputDispatcher Builders]
   end
   subgraph core [Core no UnityEngine]
@@ -44,6 +44,8 @@ flowchart LR
   Eng[GridPuzzleEngineSession Step ConfirmRecording StepPlayback Retry]
   KB --> Driver --> Keys --> Intent --> Disp --> Eng
 ```
+
+`BoardSessionDriver.Update` は、キーボードが利用可能なとき、画面サイズ追従のあと **How to play**（`HowToPlayState` / `HowToPlayView`）を処理する。オーバーレイが開いている間は **N / P** とゲーム入力（`ReadPressedKeys`）を処理しない。閉じているときの入力順序は従来どおり（ナビゲーション → ゲーム入力）。文言は **`HowToPlayModelBuilder.Build()`** のみが定義する。
 
 参照ファイル: `BoardSessionDriver.cs`、`SessionInputDispatcher.cs`（Presentation）、`GridPuzzleEngineSession.cs`（Core）。
 
@@ -77,13 +79,13 @@ Presentation が呼ぶエンジン API: `Step`、`ConfirmRecording`、`StepPlayb
 | Player は Specter のマスに入れる | `GridPuzzleEngineSessionTests.Step_PlayerCanEnterSpecterCell_NoSpecialHandling` |
 | 全モードから Retry | `GridPuzzleEngineSessionRetryTests`、PlayMode `PM4_Retry_FromAllModes` |
 
-## Presentation（`Runtime/` — 31 個の .cs ファイル）
+## Presentation（`Runtime/` — 35 個の .cs ファイル）
 
 アセンブリ: `SpecterTick.Presentation.asmdef`（Core、Input System、UGUI を参照）。
 
 ### MonoBehaviour と純粋ロジック
 
-`Runtime/` 下で `: MonoBehaviour` を継承する型は **5 つ**:
+`Runtime/` 下で `: MonoBehaviour` を継承する型は **6 つ**:
 
 | 型 | 役割 |
 |----|------|
@@ -92,6 +94,9 @@ Presentation が呼ぶエンジン API: `Step`、`ConfirmRecording`、`StepPlayb
 | `HudView` | `HudModelBuilder` 由来の HUD テキスト |
 | `ClearScreenView` | `ClearScreenModelBuilder` 由来のクリア表示 |
 | `StageLabelView` | ステージ名ラベル |
+| `HowToPlayView` | `HowToPlayModelBuilder` 由来の How to play オーバーレイ（`CanvasScaler` は Expand） |
+
+純粋: `HowToPlayState`（開閉状態）、`HowToPlayModel` / `HowToPlayModelBuilder`（不変モデルと文言）。
 
 それ以外の Runtime 型は通常の C#（ビルダー、モデル、ディスパッチャ、`StageCatalog`、`InputGuide` など）。`BoardSkin` / `BoardSkinLoader` は `UnityEngine` を使うが `MonoBehaviour` ではない。
 
@@ -123,8 +128,8 @@ Presentation Runtime で `Resources.Load` を呼ぶのは **`BoardSkinLoader.cs`
 | レイヤー | アセンブリ | 件数 | 役割 |
 |----------|------------|-----:|------|
 | Core EditMode | `SpecterTick.Core.Tests` | 286 | ルール、検証、決定性、リトライ、スイッチ/ドア |
-| Presentation EditMode | `SpecterTick.Presentation.Tests` | 180 | モデル、View、カタログ解、ビルド設定、盤面インセット |
-| PlayMode | `SpecterTick.Presentation.PlayModeTests` | 12 | `BoardSessionDriver` 統合（入力、HUD、モード、カメラ帯） |
+| Presentation EditMode | `SpecterTick.Presentation.Tests` | 206 | モデル、View、カタログ解、How to play、ビルド設定、盤面インセット |
+| PlayMode | `SpecterTick.Presentation.PlayModeTests` | 19 | `BoardSessionDriver` 統合（入力、HUD、How to play、モード、カメラ帯） |
 
 **キャラクタリゼーション:** Core セッションテストのゴールデン列、`StageSolutionTests` の SS/SN/SX。
 
