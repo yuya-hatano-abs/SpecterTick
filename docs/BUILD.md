@@ -1,6 +1,6 @@
 # ビルドとテスト
 
-本ドキュメントは、ゲームプロジェクトを開き、自動テストを実行し、Windows 64 ビットスタンドアロンを出力する手順を説明します。**Windows** 上で **Unity 6000.3.26f1** を使い、作業用コピー（兄弟 Core 配置）で batchmode を実行した結果に合わせています。ここで検証したのは **Windows 64 ビット Mono** スタンドアロンのみです。
+本ドキュメントは、ゲームプロジェクトを開き、自動テストを実行し、Windows 64 ビットスタンドアロンを出力する手順を説明します。**Windows** 上で **Unity 6000.3.26f1** を使い、作業用コピー（兄弟 Core 配置）での batchmode 実行を想定しています。ここで記載している検証対象は **Windows 64 ビット Mono** スタンドアロンの手順のみです。本リポジトリは [AI 協働開発の実験](../README.md#ai協働開発について) の一部です。
 
 ## 前提
 
@@ -81,7 +81,7 @@ New-Item -ItemType Directory -Force -Path $Out | Out-Null
 
 `-runTests` では **`-quit` を付けない**（Unity がテスト後に終了する）。結果 XML の **total** 件数を必ず確認する。
 
-### EditMode（492 件想定）
+### EditMode
 
 ```powershell
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -98,9 +98,9 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-想定: **492** 件、失敗 **0**（`SpecterTick.Core.Tests` 286 + `SpecterTick.Presentation.Tests` 206）。
+結果 XML の **`total`** を確認する（正の件数）。リポジトリ内の `[Test]` / `[UnityTest]` 属性数（2026-11-05 時点）: `SpecterTick.Core.Tests` **209** + `SpecterTick.Presentation.Tests` **206** = **415**（Core の `[TestCase]` / `[TestCaseSource]` により Unity 実行件数はこれより多い）。
 
-### PlayMode（19 件想定）
+### PlayMode（19 件 — `[Test]` / `[UnityTest]` 属性数）
 
 ```powershell
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -117,7 +117,7 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-想定: **19** 件、失敗 **0**。
+結果 XML の **`total`** を確認する。属性数（2026-11-05 時点）: **19**（`SpecterTick.Presentation.PlayModeTests`）。
 
 ### Unity Test Runner（GUI）
 
@@ -162,5 +162,6 @@ Test-Path (Join-Path $Out 'SPECTER-TICK.exe')
 ## 関連ドキュメント
 
 - [アーキテクチャ](ARCHITECTURE.md)
+- [既知の制限](KNOWN_LIMITATIONS.md)
 - [ステージガイド](STAGE_GUIDE.md)
 - [README](../README.md)

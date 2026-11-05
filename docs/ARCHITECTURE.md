@@ -2,6 +2,8 @@
 
 SPECTER//TICK は **ゲーム（Unity）** と **Core（UPM）** の 2 リポジトリ構成です。ゲームロジックとデータは `UnityEngine` に依存しない Core にあり、Presentation が入力を読み、セッション API を駆動し、盤面を描画します。
 
+**AI 協働開発:** 本プロジェクトは AI 協働開発の実験です。人間（作者）が担うのは最初の企画とタスク細分化の粒度の指示のみで、設計・実装・テスト・レビュー・承認は AI が行います。詳細は [README の「AI協働開発について」](../README.md#ai協働開発について)。
+
 ## リポジトリ構成
 
 ```text
@@ -10,7 +12,7 @@ SpecterTick/                 ← Unity ゲーム（本リポジトリ）
   Packages/manifest.json     → file:../../SpecterTick.Core
 SpecterTick.Core/            ← com.yuya_hatano.specter-tick-core 0.1.0
   Runtime/                   … エンジン + ステージモデル
-  Tests/Editor/              … EditMode 286 件
+  Tests/Editor/
 ```
 
 ## レイヤー
@@ -49,7 +51,7 @@ flowchart LR
 
 参照ファイル: `BoardSessionDriver.cs`、`SessionInputDispatcher.cs`（Presentation）、`GridPuzzleEngineSession.cs`（Core）。
 
-## Core（`Runtime/` — 29 個の .cs ファイル）
+## Core（`Runtime/`）
 
 アセンブリ: `SpecterTick.Core.asmdef`（`"noEngineReferences": true`）。テスト向けに `[assembly: InternalsVisibleTo("SpecterTick.Core.Tests")]`（`AssemblyInfo.cs`）。
 
@@ -77,9 +79,9 @@ Presentation が呼ぶエンジン API: `Step`、`ConfirmRecording`、`StepPlayb
 | 空記録 + 確定 → Playback | `ConfirmRecording_EmptySequence_AllowsPlaybackFinished` |
 | Recording 中は Cleared にならない | `Recording_F2_G11_NoClearWhileRecording` |
 | Player は Specter のマスに入れる | `GridPuzzleEngineSessionTests.Step_PlayerCanEnterSpecterCell_NoSpecialHandling` |
-| 全モードから Retry | `GridPuzzleEngineSessionRetryTests`、PlayMode `PM4_Retry_FromAllModes` |
+| 全モードから Retry | `GridPuzzleEngineSessionRetryTests`、`BoardSessionDriverPlayModeTests` |
 
-## Presentation（`Runtime/` — 35 個の .cs ファイル）
+## Presentation（`Runtime/`）
 
 アセンブリ: `SpecterTick.Presentation.asmdef`（Core、Input System、UGUI を参照）。
 
@@ -125,22 +127,20 @@ Presentation Runtime で `Resources.Load` を呼ぶのは **`BoardSkinLoader.cs`
 
 ## テスト方針
 
-| レイヤー | アセンブリ | 件数 | 役割 |
-|----------|------------|-----:|------|
-| Core EditMode | `SpecterTick.Core.Tests` | 286 | ルール、検証、決定性、リトライ、スイッチ/ドア |
-| Presentation EditMode | `SpecterTick.Presentation.Tests` | 206 | モデル、View、カタログ解、How to play、ビルド設定、盤面インセット |
-| PlayMode | `SpecterTick.Presentation.PlayModeTests` | 19 | `BoardSessionDriver` 統合（入力、HUD、How to play、モード、カメラ帯） |
+| レイヤー | アセンブリ | 役割 |
+|----------|------------|------|
+| Core EditMode | `SpecterTick.Core.Tests` | ルール、検証、決定性、リトライ、スイッチ/ドア |
+| Presentation EditMode | `SpecterTick.Presentation.Tests` | モデル、View、カタログ解、How to play、ビルド設定、盤面インセット |
+| PlayMode | `SpecterTick.Presentation.PlayModeTests` | `BoardSessionDriver` 統合（入力、HUD、How to play、モード、カメラ帯） |
 
-**キャラクタリゼーション:** Core セッションテストのゴールデン列、`StageSolutionTests` の SS/SN/SX。
-
-**非空虚性:** 開発時に意図的な変異をドライバー等に入れ、期待どおりのテストだけが失敗することを確認した（記録はリポジトリに含まない）。
+**件数:** Unity Test Runner または batchmode 結果 XML の `total` を正とする。リポジトリ内の `[Test]` / `[UnityTest]` 属性数（2026-11-05 時点）: Core EditMode **209**、Presentation EditMode **206**、PlayMode **19**。Core には `[TestCase]` / `[TestCaseSource]` があり、**実行時の件数は属性数より多い**。
 
 **自動化の範囲外（例）:** `ScreenSizeTracker` の単体テストを超えるウィンドウリサイズ、ビルドプレイヤーでの入力フォーカス、スキンの視覚品質そのもの。
 
 **同時多キー（事実）:**
 
-- EditMode **`InputIntentResolverTests`**（**3** 件）が、`InputKeys` に複数キーが同時に立っている場合の **`InputIntentResolver.Resolve` の優先順位**を検証する（代表: `K3_Priority_Goldens`）。
-- **ドライバー経由**で同一フレームに複数キーを押す PlayMode テストは、**`PM8_NavigationFrame_ConsumesOtherKeys`**（N と Right）の **1 パターン**のみ。
+- EditMode **`InputIntentResolverTests`**（3 件）が、複数キー同時押下時の **`InputIntentResolver.Resolve` の優先順位**を検証する。
+- **ドライバー経由**で同一フレームに複数キーを押す PlayMode テストは、N と Right の **1 パターン**（`BoardSessionDriverPlayModeTests`）のみ。
 - 上記以外のキー組み合わせについて、**ドライバー経由の自動テストはない**。
 
 ## 設計上の事実
@@ -151,4 +151,4 @@ Presentation Runtime で `Resources.Load` を呼ぶのは **`BoardSkinLoader.cs`
 
 ## 既知の制限
 
-[README](../README.md) の「実装状況と既知の制限」を参照。仕様 MVP の EditorWindow デバッグツールは未実装。Playback の Space と HUD テキストが部分的な可視性を提供する。
+[docs/KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) を参照。

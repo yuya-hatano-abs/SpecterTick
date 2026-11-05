@@ -1,6 +1,6 @@
 # ステージガイド
 
-ステージデータは `StageCatalog.cs` で組み立て、`StageValidator` で検証します。以下の解は `StageSolutionTests`（`SS1`〜`SS5`）と一致します。記録は矢印または WASD、**Enter** で確定、Playback では **Space** で 1 Tick 進行。
+ステージデータは `StageCatalog.cs` で組み立て、`StageValidator` で検証します。以下の解は `StageSolutionTests` の各ステージ向けテストと一致します。記録は矢印または WASD、**Enter** で確定、Playback では **Space** で 1 Tick 進行。
 
 記録文字列: **U** 上、**D** 下、**L** 左、**R** 右。
 
@@ -16,51 +16,51 @@
 
 ## WALK（index 0）
 
-記録のみ。確定で Playback なしでクリア（`SS1_Walk_Solution`）。
+記録のみ。確定で Playback なしでクリア（`StageSolutionTests` の WALK 向け解テスト）。
 
 <details>
 <summary>解（記録 + Enter）</summary>
 
-- **記録:** `UURRR`（5 手。`SS1_Walk_Solution`）
+- **記録:** `UURRR`（5 手）
 - **Enter:** 記録確定
 - **Enter 後の Space:** **0**（確定時点で Cleared）
 
 </details>
 
-**短い解の全探索:** `StageSolutionTests.SX1_Walk_ExhaustiveShortSolutions` は探索上限 5 手で、`counts[5]` が 2、`solutions` が **`RRRUU`** と **`UURRR`** のみ（**記録長 5 でクリアする解がちょうど 2 つ**）。
+**短い解の全探索:** `StageSolutionTests.cs` 内の WALK 向け全探索テストは探索上限 5 手で、`counts[5]` が 2、`solutions` が **`RRRUU`** と **`UURRR`** のみ（**記録長 5 でクリアする解がちょうど 2 つ**）。
 
 ## ECHO（index 1）
 
 <details>
 <summary>解</summary>
 
-- **記録:** `RRRR`（`SS2_Echo_Solution`）
+- **記録:** `RRRR`
 - **Enter:** 確定 → Playback
 - **Space:** **3** 回（tick 3 で Cleared）
 
 </details>
 
-**短い解の全探索:** `SX2_Echo_ExhaustiveShortSolutions` — 長さ 4 の解が 1 つ: `RRRR`。
+**短い解の全探索:** ECHO 向け全探索テスト — 長さ 4 の解が 1 つ: `RRRR`。
 
 ## GATE（index 2）
 
 <details>
 <summary>解</summary>
 
-- **記録:** `UULLDLDD`（`SS3_Gate_Solution`）
+- **記録:** `UULLDLDD`
 - **Enter:** 確定 → Playback
 - **Space:** **6** 回（Cleared）
 
 </details>
 
-**短い解の全探索:** `SX3_Gate_ExhaustiveShortSolutions` — 長さ 8 の解が 1 つ: `UULLDLDD`。
+**短い解の全探索:** GATE 向け全探索テスト — 長さ 8 の解が 1 つ: `UULLDLDD`。
 
 ## TWIN（index 3）
 
 <details>
 <summary>解</summary>
 
-- **記録:** `RRRRUUUDDD`（`SN4_Twin_Prefix_And_Empty` / `SS4_Twin_Solution`）
+- **記録:** `RRRRUUUDDD`
 - **Enter:** 確定 → Playback
 - **Space:** **7** 回（Cleared）
 
@@ -71,7 +71,7 @@
 <details>
 <summary>解</summary>
 
-- **記録:** `LLURURRLUURR`（12 手。`SS5_Tangle_Solution`）
+- **記録:** `LLURURRLUURR`（12 手）
 - **Enter:** 確定 → Playback
 - **Space:** **12** 回（Cleared）
 
@@ -84,6 +84,6 @@
 
 ## テスト
 
-- ステージごとの実行: `StageSolutionTests.cs` の `SS1`〜`SS5`
-- プレフィックス / 空確定: `SN1`〜`SN5`
-- 短い解の全探索件数: `SX1`〜`SX3`（WALK、ECHO、GATE のみ）
+- ステージごとの解: `StageSolutionTests.cs`
+- プレフィックス / 空確定: 同ファイル内のプレフィックス・空確定向けテスト
+- 短い解の全探索: WALK / ECHO / GATE のみ（`StageSolutionTests.cs`）
