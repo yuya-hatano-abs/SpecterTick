@@ -1,6 +1,6 @@
 # ビルドとテスト
 
-本ドキュメントは、ゲームプロジェクトを開き、自動テストを実行し、Windows 64 ビットスタンドアロンを出力する手順を説明します。**Windows** 上で **Unity 6000.3.26f1** を使い、作業用コピー（兄弟 Core 配置）での batchmode 実行を想定しています。ここで記載している検証対象は **Windows 64 ビット Mono** スタンドアロンの手順のみです。本リポジトリは [AI 協働開発の実験](../README.md#ai協働開発について) の一部です。
+本ドキュメントは、ゲームプロジェクトを開き、自動テストを実行し、Windows 64 ビットスタンドアロンを出力する **手順** を説明します。**Windows** 上で **Unity 6000.3.26f1** を使い、作業用コピー（兄弟 Core 配置）での batchmode 実行を想定しています。記載のビルド手順は **Windows 64 ビット Mono** スタンドアロン向けです（他構成は下記「手順の想定範囲」）。本リポジトリは [AI 協働開発の実験](../README.md#ai協働開発について) の一部です。
 
 ## 前提
 
@@ -33,7 +33,7 @@ Core の Git リモート URL（参照用）: `https://github.com/yuya-hatano-ab
 
 PowerShell で（パスは環境に合わせて変更する）。
 
-**`/MIR` はコピー先にあってソースにないファイルを削除します。** `$SrcGame` / `$SrcCore` と `$Game` / `$Core` が、実リポジトリそのものを指していないことを確認してから実行してください。
+**`/MIR` はコピー先にあってソースにないファイルを削除します。** `$SrcGame` / `$SrcCore` と `$Game` / `$Core` が、実リポジトリそのものを指していないことに注意してから実行してください。
 
 ```powershell
 # 例: 実リポジトリの場所（環境に合わせて変更する）
@@ -69,7 +69,7 @@ $Out   = "C:\Work\SpecterTick-Out"
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
 ```
 
-`$Game`・`$Core`・`$Out` は、いずれも **空白を含まないパスを推奨**します（例: `C:\Work\SpecterTick` / `C:\Work\SpecterTick.Core` / `C:\Work\SpecterTick-Out`）。`Start-Process` の `-ArgumentList` に `$results` / `$log` をそのまま渡す形は、`$Out` が空白なしのときに検証済みです。
+`$Game`・`$Core`・`$Out` は、いずれも **空白を含まないパスを推奨**します（例: `C:\Work\SpecterTick` / `C:\Work\SpecterTick.Core` / `C:\Work\SpecterTick-Out`）。以下の `Start-Process` 例は、`$Out` に空白が含まれない場合を前提としています。
 
 ## エディタで開く
 
@@ -79,7 +79,7 @@ New-Item -ItemType Directory -Force -Path $Out | Out-Null
 
 ## 自動テスト（コマンドライン）
 
-`-runTests` では **`-quit` を付けない**（Unity がテスト後に終了する）。結果 XML の **total** 件数を必ず確認する。
+`-runTests` では **`-quit` を付けない**（Unity がテスト後に終了する）。結果 XML の **total** 件数を参照してください。
 
 ### EditMode
 
@@ -98,7 +98,7 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-結果 XML の **`total`** を確認する（正の件数）。リポジトリ内の `[Test]` / `[UnityTest]` 属性数（2026-11-05 時点）: `SpecterTick.Core.Tests` **209** + `SpecterTick.Presentation.Tests` **206** = **415**（Core の `[TestCase]` / `[TestCaseSource]` により Unity 実行件数はこれより多い）。
+結果 XML の **`total`** が正の件数であることを参照してください。参考: リポジトリ内の `[Test]` / `[UnityTest]` 属性数（2026-11-05 時点）: `SpecterTick.Core.Tests` **209** + `SpecterTick.Presentation.Tests` **206** = **415**（Core の `[TestCase]` / `[TestCaseSource]` により Unity 実行件数はこれより多い）。
 
 ### PlayMode（19 件 — `[Test]` / `[UnityTest]` 属性数）
 
@@ -117,7 +117,7 @@ $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList @(
 $p.ExitCode
 ```
 
-結果 XML の **`total`** を確認する。属性数（2026-11-05 時点）: **19**（`SpecterTick.Presentation.PlayModeTests`）。
+結果 XML の **`total`** を参照してください。参考: 属性数（2026-11-05 時点）: **19**（`SpecterTick.Presentation.PlayModeTests`）。
 
 ### Unity Test Runner（GUI）
 
@@ -141,13 +141,13 @@ $p.ExitCode
 Test-Path (Join-Path $Out 'SPECTER-TICK.exe')
 ```
 
-検証時の目安: `Library/` のないコピーでも約 **90 秒** 程度で完了、出力フォルダは約 **93 MB** 程度。Managed に `*Tests*.dll` が含まれないこと。
+ビルド後の参考チェック: 完了時間・出力サイズは **環境により異なります**。`SPECTER-TICK_Data/Managed` に `*Tests*.dll` が含まれないこと。
 
-## 検証済みの範囲
+## 手順の想定範囲
 
 - OS: Windows 64 ビット
-- スクリプティング: Mono（本プロジェクトの Unity 既定）
-- 本ドキュメントで未検証: 他プラットフォーム、IL2CPP のみの手順、Core を Git URL のみで入れる構成（ゲームは `file:` 前提）
+- スクリプティング: Mono（`ProjectSettings` の Unity 既定）
+- 本ドキュメントで扱わない: 他プラットフォーム、IL2CPP のみの手順、Core を Git URL のみで入れる構成（ゲームは `file:` 前提）
 
 ## トラブルシュート
 
